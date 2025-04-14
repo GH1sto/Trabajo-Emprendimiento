@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ahorrópolis - Juego Educativo Financiero</title>
+  <title>Ahorrópoli - Juego Educativo Financiero</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
