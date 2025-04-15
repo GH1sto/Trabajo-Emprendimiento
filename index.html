@@ -54,6 +54,16 @@
       text-align: center;
       padding: 20px;
     }
+    #playerInputs {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    #playerInputs input {
+      margin: 5px;
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
     #board {
       display: grid;
       grid-template-columns: repeat(5, 80px);
@@ -61,6 +71,7 @@
       gap: 5px;
       justify-content: center;
       margin: 20px auto;
+      position: relative;
     }
     .tile {
       background-color: #fff;
@@ -69,22 +80,28 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
+      font-size: 10px;
       text-align: center;
       padding: 5px;
       position: relative;
+    }
+    .tile[data-icon]::before {
+      content: attr(data-icon);
+      position: absolute;
+      font-size: 18px;
+      top: 5px;
+      left: 5px;
     }
     .player {
       position: absolute;
       width: 15px;
       height: 15px;
-      background-color: red;
       border-radius: 50%;
       bottom: 5px;
       right: 5px;
-      transition: all 0.5s ease;
+      transition: transform 0.5s ease-in-out;
     }
-    #rollButton {
+    #rollButton, #startGame, #confirmButton {
       padding: 10px 20px;
       font-size: 16px;
       background-color: #4CAF50;
@@ -92,6 +109,7 @@
       border: none;
       border-radius: 8px;
       cursor: pointer;
+      margin-top: 10px;
     }
     #dice {
       width: 50px;
@@ -110,17 +128,19 @@
       font-size: 18px;
       font-weight: bold;
     }
-    #triviaOptions button,
-    #decisionOptions button,
-    #minijuego button,
-    #continueButton {
-      margin: 5px;
+    #playersStatus {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    .playerCard {
+      background-color: #fff;
+      border: 1px solid #4CAF50;
+      border-radius: 10px;
+      margin: 10px;
       padding: 10px;
-      border-radius: 5px;
-      border: none;
-      cursor: pointer;
-      background-color: #4CAF50;
-      color: white;
+      min-width: 150px;
     }
     footer {
       background-color: #4CAF50;
@@ -129,252 +149,556 @@
       padding: 15px;
       margin-top: 40px;
     }
+    #turnoActual {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    #victoriaModal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      display: none;
+      z-index: 999;
+    }
+    #victoriaModalContent {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    /* Modal base */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 10;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+}
+
+/* Contenido del modal */
+.modal-content {
+  background-color: #fefefe;
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 500px;
+  text-align: center;
+  box-shadow: 0px 0px 10px #000;
+}
+
+/* Opciones estilo botón */
+.options button {
+  display: block;
+  margin: 10px auto;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 8px;
+  border: none;
+  background-color: #1abc9c;
+  color: white;
+  transition: background-color 0.3s;
+}
+
+.options button:hover {
+  background-color: #16a085;
+}
+
+@media (max-width: 600px) {
+  nav {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  #board {
+    grid-template-columns: repeat(5, 60px);
+    grid-template-rows: repeat(5, 60px);
+  }
+
+  .tile {
+    font-size: 8px;
+    padding: 3px;
+  }
+
+  .player {
+    width: 12px;
+    height: 12px;
+  }
+
+  #dice {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  #rollButton, #startGame, #confirmButton {
+    width: 90%;
+    font-size: 14px;
+  }
+
+  #playersStatus {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .playerCard {
+    width: 90%;
+    font-size: 14px;
+  }
+
+  input.playerNameInput {
+    width: 90%;
+    font-size: 14px;
+  }
+
+  header h1 {
+    font-size: 24px;
+  }
+
+  h2 {
+    font-size: 20px;
+  }
+
+  .card, #victoriaModalContent {
+    width: 90%;
+  }
+}
+
+#board {
+  grid-template-columns: repeat(5, minmax(60px, 1fr));
+  grid-template-rows: repeat(5, minmax(60px, 1fr));
+  gap: 5px;
+  max-width: 100%;
+}
+
   </style>
 </head>
 <body>
-  <header>
-    <h1>Ahorrópolis – Un juego educativo financiero</h1>
-  </header>
   <nav>
-    <a href="#" onclick="mostrar('informacion')">Inicio</a>
-    <a href="#" onclick="mostrar('jugar')">Jugar</a>
+    <a href="#" onclick="mostrarPestana('inicio')">Inicio</a>
+    <a href="#" onclick="mostrarPestana('reglas')">Reglas</a>
   </nav>
+  
+  <header>
+    <h1>Ahorrópolis</h1>
+  </header>
   <main>
-    <section id="informacion">
-      <div class="card">
-        <h2>Instrucciones del Juego</h2>
-        <p>Bienvenido a <strong>Ahorrópolis</strong>, un juego educativo financiero para jóvenes y adultos donde aprenderás sobre ahorro y finanzas personales de manera divertida.</p>
-        <ul>
-          <li><strong>🎲 Tablero tipo Monopoly:</strong> avanza lanzando un dado virtual.</li>
-          <li><strong>💵 Gana Dinero:</strong> trabajos o inversiones exitosas.</li>
-          <li><strong>⚠️ Pérdidas:</strong> gastos inesperados o malas decisiones.</li>
-          <li><strong>📚 Educación Financiera:</strong> responde trivia para ganar premios.</li>
-          <li><strong>🔀 Decisiones:</strong> elige cómo gastar, invertir o ahorrar.</li>
-          <li><strong>🎯 Objetivo:</strong> alcanzar metas financieras antes que los demás.</li>
-        </ul>
-        <p>Haz clic en "Jugar" para comenzar tu aventura financiera. ¡Mucho éxito!</p>
-      </div>
+    <section id="pestana-inicio">
+      <h2>Bienvenido a Ahorrópolis</h2>
+      <p>Un juego educativo para aprender finanzas personales mientras te diviertes.</p>
     </section>
-    <section id="jugar">
-      <h2>🎲 ¡Juega Ahorrópolis!</h2>
-      <div class="card">
-        <h3>Bienvenido a Ahorrópolis</h3>
-        <p>Hola jugador, en este juego recorrerás un tablero donde cada casilla representa una situación financiera.</p>
-        <ul>
-          <li>🎲 Lanza el dado para avanzar.</li>
-          <li>📚 Responde preguntas para ganar dinero.</li>
-          <li>🔀 Toma decisiones para mejorar tus finanzas.</li>
-          <li>💵 Acumula dinero a medida que avanzas.</li>
-        </ul>
-        <p>Ingresa tu nombre y presiona "Lanzar dado" para comenzar. ¡Buena suerte!</p>
-      </div>
-      <input type="text" id="playerName" placeholder="Ingresa tu nombre">
-      <div id="money">💵 Dinero: $0</div>
+    
+    <section id="pestana-reglas" style="display:none;">
+      <h2>Reglas del Juego</h2>
+      <ul>
+        <li>Cada jugador empieza con $0.</li>
+        <li>Se avanza con un dado.</li>
+        <li>Hay casillas de ahorro, gasto, inversión, y retos.</li>
+        <li>Todos los jugadores deben completar 2 vueltas al tablero.</li>
+        <li>Gana quien tenga más dinero al final.</li>
+      </ul>
+    </section>
+    
+    <section id="pestana-juego" style="display:none;">
+      <!-- Aquí va TODO el contenido actual del juego (inputs, tablero, dados, etc.) -->
+      <!-- Simplemente envuelve tu contenido actual del juego dentro de esta sección -->
+    </section>
+    
+    <div id="playerInputs">
+      <input type="text" class="playerNameInput" placeholder="Nombre del Jugador">
+      <button onclick="addPlayerInput()">+</button>
+      <button id="startGame">Iniciar Juego</button>
+    </div>
+    <div id="board"></div>
+    <div style="text-align: center;">
       <div id="dice">🎲</div>
-      <div id="board"></div>
-      <button id="rollButton">Lanzar dado</button>
+      <button id="rollButton" style="display:none;">Lanzar dado</button>
       <div id="result"></div>
-      <div id="triviaOptions"></div>
-      <div id="decisionOptions"></div>
-      <div id="minijuego"></div>
-      <div id="continueContainer"></div>
-    </section>
+      <button id="confirmButton" style="display:none">Confirmar avance</button>
+    </div>
+    <div id="turnoActual"></div>
+    <div id="playersStatus"></div>
   </main>
   <footer>
-    <p>&copy; 2025 Ahorrópolis. Todos los derechos reservados. | Juan Yoandry Feliz </p>
+    &copy; 2025 Ahorrópolis
   </footer>
+  <div id="victoriaModal">
+    <div id="victoriaModalContent">
+      <h2>🎉 ¡Felicidades!</h2>
+      <p id="mensajeVictoria"></p>
+      <button onclick="location.reload()">Jugar de nuevo</button>
+    </div>
+  </div>
+  <!-- Modal de reto -->
+<div id="challengeModal" class="modal">
+  <div class="modal-content">
+    <h2 id="challengeQuestion">Pregunta de reto</h2>
+    <div id="challengeOptions" class="options"></div>
+  </div>
+</div>
+
   <script>
-    const board = document.getElementById("board");
-    const triviaPreguntas = [
-      { pregunta: "¿Qué es un presupuesto?", opciones: [ { texto: "A) Lista de compras", correcta: false }, { texto: "B) Plan de ingresos y gastos", correcta: true }, { texto: "C) Contraseña bancaria", correcta: false } ] },
-      { pregunta: "¿Qué es el interés compuesto?", opciones: [ { texto: "A) Ganancia sobre ganancia anterior", correcta: true }, { texto: "B) Pago mensual", correcta: false }, { texto: "C) Crédito rápido", correcta: false } ] },
-      { pregunta: "¿Qué es una inversión?", opciones: [ { texto: "A) Gasto innecesario", correcta: false }, { texto: "B) Poner dinero para obtener ganancia futura", correcta: true }, { texto: "C) Comprar ropa", correcta: false } ] }
-    ];
+const board = document.getElementById("board");
+const rollButton = document.getElementById("rollButton");
+const startButton = document.getElementById("startGame");
+const resultDiv = document.getElementById("result");
+const confirmButton = document.getElementById("confirmButton");
+const playerInputsDiv = document.getElementById("playerInputs");
+const playersStatusDiv = document.getElementById("playersStatus");
+const turnoActualDiv = document.getElementById("turnoActual");
+const victoriaModal = document.getElementById("victoriaModal");
+const mensajeVictoria = document.getElementById("mensajeVictoria");
 
-    const outcomes = [
-      "💰 Gana Dinero: Recibes $200 por un trabajo exitoso.",
-      "❌ Pérdida: Pagas $150 por un gasto inesperado.",
-      "🔀 Decisión Financiera: ¿Ahorrar o gastar? Tú decides.",
-      "📚 Educación Financiera",
-      "🎁 Oportunidad: Ganas una beca. Avanzas 2 casillas.",
-      "⚠️ Riesgo: No pagaste una deuda. Pierdes un turno.",
-      "🏁 Reto: Ahorra $1000 en 3 turnos para bono de $500."
-    ];
+let players = [];
+let currentPlayerIndex = 0;
+let isWaitingConfirmation = false;
+let diceLocked = false;
 
-    const tiles = 25;
-    let position = 0;
-    let dinero = 0;
-    let pierdeTurno = false;
-
-    for (let i = 0; i < tiles; i++) {
-      const tile = document.createElement("div");
-      tile.className = "tile";
-      tile.textContent = outcomes[i % outcomes.length].split(':')[0];
-      tile.id = `tile-${i}`;
-      board.appendChild(tile);
+const tiles = [
+  { name: "Inicio", icon: "🏠", effect: player => player.money += 100 },
+  { name: "Ahorro", icon: "💰", effect: player => {
+    alert(`${player.name} decidió ahorrar $50. ¡Buena elección!`);
+    player.money += 50;
+  }},
+  { name: "Gasto", icon: "💸", effect: player => {
+    alert(`${player.name} tuvo que pagar servicios. Perdió $30.`);
+    player.money -= 30;
+  }},
+  { name: "Reto", icon: "🎯", effect: player => triggerChallenge(player) },
+  { name: "Inversión", icon: "📈", effect: player => {
+    alert(`${player.name} invirtió sabiamente. Ganó $70.`);
+    player.money += 70;
+  }},
+  { name: "Gasto Extra", icon: "🧾", effect: player => {
+    alert(`${player.name} tuvo un gasto inesperado. Perdió $50.`);
+    player.money -= 50;
+  }},
+  { name: "Ahorro", icon: "💰", effect: player => {
+    alert(`${player.name} ahorró parte de su salario. Ganó $50.`);
+    player.money += 50;
+  }},
+  { name: "Reto", icon: "🎯", effect: player => triggerChallenge(player) },
+  { name: "Sorpresa", icon: "🎁", effect: player => {
+    const surprise = Math.random() > 0.5 ? 50 : -50;
+    alert(`${player.name} recibió una sorpresa de ${surprise > 0 ? '$50' : '-$50'}.`);
+    player.money += surprise;
+  }},
+  { name: "Impuesto", icon: "💵", effect: player => {
+    alert(`${player.name} pagó impuestos. Perdió $20.`);
+    player.money -= 20;
+  }},
+  { name: "Inicio", icon: "🏠", effect: player => player.money += 100 },
+  { name: "Ahorro", icon: "💰", effect: player => {
+    alert(`${player.name} ahorró en una alcancía. Ganó $50.`);
+    player.money += 50;
+  }},
+  { name: "Gasto", icon: "💸", effect: player => {
+    alert(`${player.name} fue de compras. Perdió $30.`);
+    player.money -= 30;
+  }},
+  { name: "Reto", icon: "🎯", effect: player => triggerChallenge(player) },
+  { name: "Inversión", icon: "📈", effect: player => {
+    alert(`${player.name} invirtió en un pequeño negocio. Ganó $70.`);
+    player.money += 70;
+  }},
+  { name: "Gasto Extra", icon: "🧾", effect: player => {
+    alert(`${player.name} reparó su auto. Perdió $50.`);
+    player.money -= 50;
+  }},
+  { name: "Ahorro", icon: "💰", effect: player => {
+    alert(`${player.name} depositó en una cuenta de ahorro. Ganó $50.`);
+    player.money += 50;
+  }},
+  { name: "Reto", icon: "🎯", effect: player => triggerChallenge(player) },
+  { name: "Sorpresa", icon: "🎁", effect: player => {
+    const surprise = Math.random() > 0.5 ? 50 : -50;
+    alert(`${player.name} recibió una sorpresa de ${surprise > 0 ? '$50' : '-$50'}.`);
+    player.money += surprise;
+  }},
+  { name: "Impuesto", icon: "💵", effect: player => {
+    alert(`${player.name} pagó el impuesto predial. Perdió $20.`);
+    player.money -= 20;
+  }},
+  { name: "Inicio", icon: "🏠", effect: player => player.money += 100 },
+  { name: "Bonus", icon: "✨", effect: player => {
+    alert(`${player.name} recibió un bono de productividad. Ganó $200.`);
+    player.money += 200;
+  }},
+  { name: "Reto Final", icon: "👑", effect: player => {
+    triggerChallenge(player);
+    if (player.money >= 1000) {
+      mensajeVictoria.textContent = `${player.name} ha ganado el juego con $${player.money}!`;
+      victoriaModal.style.display = "flex";
+    } else {
+      alert(`${player.name} necesita $${1000 - player.money} más para ganar.`);
     }
+  }},
+  { name: "Suerte", icon: "🍀", effect: player => {
+    const lucky = Math.floor(Math.random() * 100);
+    alert(`${player.name} encontró dinero en la calle. Ganó $${lucky}.`);
+    player.money += lucky;
+  }},
+  { name: "Gasto", icon: "💸", effect: player => {
+    alert(`${player.name} pagó suscripciones. Perdió $30.`);
+    player.money -= 30;
+  }},
+];
 
-    const player = document.createElement("div");
-    player.className = "player";
-    document.getElementById("tile-0").appendChild(player);
 
-    document.getElementById("rollButton").addEventListener("click", () => {
-      document.getElementById("rollButton").disabled = true;
-      jugarTurno();
-    });
+function renderBoard() {
+  board.innerHTML = "";
+  tiles.forEach((tile, i) => {
+    const div = document.createElement("div");
+    div.className = "tile";
+    div.dataset.icon = tile.icon;
+    div.innerHTML = `<strong>${tile.name}</strong>`;
+    board.appendChild(div);
+  });
+}
 
-    function jugarTurno() {
-      if (pierdeTurno) {
-        alert("Perdiste este turno. Espera al siguiente.");
-        pierdeTurno = false;
-        document.getElementById("rollButton").disabled = false;
-        return;
-      }
+function addPlayerInput() {
+  const input = document.createElement("input");
+  input.type = "text";
+  input.className = "playerNameInput";
+  input.placeholder = "Nombre del Jugador";
+  playerInputsDiv.insertBefore(input, playerInputsDiv.children[playerInputsDiv.children.length - 2]);
+}
 
-      const name = document.getElementById("playerName").value.trim();
-      if (!name) {
-        alert("Por favor ingresa tu nombre para jugar.");
-        document.getElementById("rollButton").disabled = false;
-        return;
-      }
+function startGame() {
+  const inputs = document.querySelectorAll(".playerNameInput");
+  inputs.forEach(input => {
+    const name = input.value.trim();
+    if (name) {
+      players.push({ name, position: 0, money: 0, correct: 0, wrong: 0, pawn: null, laps: 0 });
 
-      document.getElementById("triviaOptions").innerHTML = "";
-      document.getElementById("decisionOptions").innerHTML = "";
-      document.getElementById("minijuego").innerHTML = "";
-      document.getElementById("continueContainer").innerHTML = "";
 
-      let diceDisplay = document.getElementById("dice");
-      diceDisplay.textContent = "🎲";
-
-      setTimeout(() => {
-        const roll = Math.floor(Math.random() * 6) + 1;
-        diceDisplay.textContent = roll;
-
-        position += roll;
-        if (position >= tiles) {
-          position %= tiles;
-          dinero += 100;
-        }
-
-        const newTile = document.getElementById(`tile-${position}`);
-        newTile.appendChild(player);
-
-        const outcome = outcomes[position % outcomes.length];
-        document.getElementById("result").textContent = `🎲 ${name} lanzó: ${roll}. ${outcome}`;
-
-        if (outcome.includes("Educación Financiera")) {
-          const pregunta = triviaPreguntas[Math.floor(Math.random() * triviaPreguntas.length)];
-          document.getElementById("result").textContent += `: ${pregunta.pregunta}`;
-
-          pregunta.opciones.forEach(op => {
-            const btn = document.createElement("button");
-            btn.textContent = op.texto;
-            btn.onclick = () => {
-              if (op.correcta) {
-                dinero += 100;
-                alert("✅ ¡Correcto! Ganas $100.");
-              } else {
-                alert("❌ Incorrecto. No avanzas el próximo turno.");
-                pierdeTurno = true;
-              }
-              document.getElementById("money").textContent = `💵 Dinero: $${dinero}`;
-              document.getElementById("triviaOptions").innerHTML = "";
-              mostrarBotonContinuar();
-            };
-            document.getElementById("triviaOptions").appendChild(btn);
-          });
-        } else if (outcome.includes("Decisión Financiera")) {
-          const decisiones = [
-            { texto: "Ahorrar: ganas $50.", efecto: () => dinero += 50 },
-            { texto: "Gastar: pierdes $50.", efecto: () => dinero -= 50 }
-          ];
-          decisiones.forEach(dec => {
-            const btn = document.createElement("button");
-            btn.textContent = dec.texto;
-            btn.onclick = () => {
-              dec.efecto();
-              alert("Elección tomada: " + dec.texto);
-              document.getElementById("money").textContent = `💵 Dinero: $${dinero}`;
-              document.getElementById("decisionOptions").innerHTML = "";
-              mostrarBotonContinuar();
-            };
-            document.getElementById("decisionOptions").appendChild(btn);
-          });
-        } else if (outcome.includes("Reto")) {
-          const minijuegos = [
-            () => document.getElementById("minijuego").innerHTML = '<p>🧩 Minijuego: Adivina un número entre 1 y 3.</p><button onclick="verificarNumero(1)">1</button><button onclick="verificarNumero(2)">2</button><button onclick="verificarNumero(3)">3</button>',
-            () => document.getElementById("minijuego").innerHTML = '<p>🧠 Minijuego: ¿Cuál es el símbolo del peso dominicano?</p><button onclick="verificarSimbolo(\'\$\')">$</button><button onclick="verificarSimbolo(\'RD$\')">RD$</button><button onclick="verificarSimbolo(\'€\')">€</button>',
-            () => document.getElementById("minijuego").innerHTML = '<p>🎯 Minijuego: ¿Cuál de estas es una buena práctica financiera?</p><button onclick="verificarPractica(true)">Ahorrar regularmente</button><button onclick="verificarPractica(false)">Gastar todo</button>'
-          ];
-          const minijuego = minijuegos[Math.floor(Math.random() * minijuegos.length)];
-          minijuego();
-        } else {
-          if (outcome.includes("Gana Dinero")) dinero += 200;
-          if (outcome.includes("Pérdida")) dinero -= 150;
-          if (outcome.includes("Riesgo")) pierdeTurno = true;
-          if (outcome.includes("Oportunidad")) {
-            position = Math.min(position + 2, tiles - 1);
-            document.getElementById(`tile-${position}`).appendChild(player);
-          }
-          document.getElementById("money").textContent = `💵 Dinero: $${dinero}`;
-          mostrarBotonContinuar();
-        }
-      }, 500);
     }
+  });
+  if (players.length < 1) return alert("Agrega al menos un jugador");
 
-    function mostrarBotonContinuar() {
-      const btn = document.createElement("button");
-      btn.id = "continueButton";
-      btn.textContent = "Siguiente turno";
-      btn.onclick = () => {
-        document.getElementById("continueContainer").innerHTML = "";
-        document.getElementById("rollButton").disabled = false;
-      };
-      document.getElementById("continueContainer").appendChild(btn);
+  playerInputsDiv.style.display = "none";
+  renderBoard();
+
+  const tilesDivs = document.querySelectorAll(".tile");
+  players.forEach((player, i) => {
+    const pawn = document.createElement("div");
+    pawn.className = "player";
+    pawn.style.backgroundColor = getColor(i);
+    player.pawn = pawn;
+    tilesDivs[0].appendChild(pawn);
+  });
+
+  rollButton.style.display = "inline-block";
+  updateStatus();
+  showTurn();
+}
+
+function showTurn() {
+  turnoActualDiv.textContent = `Turno de: ${players[currentPlayerIndex].name}`;
+}
+
+function getColor(i) {
+  const colors = ["red", "blue", "green", "orange", "purple", "brown"];
+  return colors[i % colors.length];
+}
+
+function rollDice() {
+  if (isWaitingConfirmation || diceLocked) return;
+  const roll = Math.floor(Math.random() * 6) + 1;
+  resultDiv.textContent = `Dado: ${roll}`;
+  diceLocked = true;
+
+
+  
+  let player = players[currentPlayerIndex];
+  let initialPosition = player.position;
+player.position = (player.position + roll) % tiles.length;
+
+// Si dio la vuelta completa
+if (player.position < initialPosition) {
+  player.laps++;
+}
+
+  player.position = (player.position + roll) % tiles.length;
+
+  movePlayer(player);
+
+  const tile = tiles[player.position];
+  if (tile.name === "Reto" || tile.name === "Reto Final") {
+    isWaitingConfirmation = true;
+    confirmButton.style.display = "inline-block";
+    confirmButton.onclick = () => {
+      tile.effect(player);
+      confirmButton.style.display = "none";
+      isWaitingConfirmation = false;
+      diceLocked = false;
+      updateStatus();
+      nextTurn();
+    };
+  } else {
+    tile.effect(player);
+    updateStatus();
+    setTimeout(() => {
+      diceLocked = false;
+      nextTurn();
+    }, 1000);
+  }
+  
+}
+
+function movePlayer(player) {
+  const tile = board.children[player.position];
+  tile.appendChild(player.pawn);
+}
+
+function nextTurn() {
+  // Verificar si todos completaron 2 vueltas
+  const allFinished = players.every(p => p.laps >= 2);
+  if (allFinished) {
+    endGame();
+    return;
+  }
+
+  currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+  showTurn();
+}
+
+
+function endGame() {
+  const sortedPlayers = [...players].sort((a, b) => b.money - a.money);
+  const topPlayer = sortedPlayers[0];
+
+  mensajeVictoria.textContent = `🎉 ¡Juego terminado! ${topPlayer.name} ganó con $${topPlayer.money}.\n\nRanking:\n` +
+    sortedPlayers.map(p => `${p.name}: $${p.money} (${p.laps} vueltas)`).join('\n');
+
+  victoriaModal.style.display = "flex";
+}
+
+
+
+function updateStatus() {
+  playersStatusDiv.innerHTML = "";
+  players.forEach(player => {
+    const div = document.createElement("div");
+    div.className = "playerCard";
+    div.innerHTML = `<strong>${player.name}</strong><br>
+                     Dinero: $${player.money}<br>
+                     Aciertos: ${player.correct}<br>
+                     Errores: ${player.wrong}`;
+    playersStatusDiv.appendChild(div);
+    div.innerHTML = `<strong>${player.name}</strong><br>
+                 Dinero: $${player.money}<br>
+                 Vueltas: ${player.laps}<br>
+                 Aciertos: ${player.correct}<br>
+                 Errores: ${player.wrong}`;
+
+  });
+}
+
+function triggerChallenge(player) {
+  const questions = [
+    {
+      question: "¿Cuál es una buena práctica para ahorrar dinero?",
+      options: ["Gastar todo el sueldo", "Ahorrar una parte fija cada mes", "Comprar cosas innecesarias"],
+      correctIndex: 1
+    },
+    {
+      question: "¿Qué es un presupuesto?",
+      options: ["Una herramienta para gastar más", "Una lista de deseos", "Una planificación de ingresos y gastos"],
+      correctIndex: 2
+    },
+    {
+      question: "¿Cuál es un ejemplo de ingreso?",
+      options: ["Comida", "Salario", "Ropa"],
+      correctIndex: 1
+    },
+    {
+      question: "¿Qué significa invertir?",
+      options: ["Gastar todo", "Guardar bajo el colchón", "Poner dinero para generar más dinero"],
+      correctIndex: 2
+    },
+    {
+      question: "¿Por qué es importante ahorrar?",
+      options: ["Para comprar más antojos", "Para emergencias y metas futuras", "Para no usarlo nunca"],
+      correctIndex: 1
     }
+  ];
 
-    function verificarNumero(num) {
-      const correcto = Math.floor(Math.random() * 3) + 1;
-      if (num === correcto) {
-        alert("🎉 ¡Correcto! Ganas $200.");
-        dinero += 200;
+  const challengeModal = document.getElementById("challengeModal");
+  const questionEl = document.getElementById("challengeQuestion");
+  const optionsEl = document.getElementById("challengeOptions");
+
+  const question = questions[Math.floor(Math.random() * questions.length)];
+
+  questionEl.textContent = question.question;
+  optionsEl.innerHTML = "";
+
+  question.options.forEach((option, index) => {
+    const btn = document.createElement("button");
+    btn.textContent = option;
+    btn.onclick = () => {
+      if (index === question.correctIndex) {
+        player.money += 100;
+        player.correct++;
+        showMessage(`${player.name} respondió correctamente y ganó $100!`);
       } else {
-        alert("😓 Fallaste. Intenta mejor la próxima vez.");
+        player.money -= 50;
+        player.wrong++;
+        showMessage(`${player.name} respondió mal y perdió $50.`);
       }
-      document.getElementById("minijuego").innerHTML = "";
-      document.getElementById("money").textContent = `💵 Dinero: $${dinero}`;
-      mostrarBotonContinuar();
-    }
+      challengeModal.style.display = "none";
+      updateStatus();
+    };
+    optionsEl.appendChild(btn);
+  });
 
-    function verificarSimbolo(respuesta) {
-      if (respuesta === "RD$") {
-        alert("✅ ¡Correcto! Ganas $200.");
-        dinero += 200;
-      } else {
-        alert("❌ Incorrecto.");
-      }
-      document.getElementById("minijuego").innerHTML = "";
-      document.getElementById("money").textContent = `💵 Dinero: $${dinero}`;
-      mostrarBotonContinuar();
-    }
+  challengeModal.style.display = "flex";
+}
 
-    function verificarPractica(correcta) {
-      if (correcta) {
-        alert("👏 ¡Muy bien! Ganas $200.");
-        dinero += 200;
-      } else {
-        alert("❌ Esa no es una buena práctica.");
-      }
-      document.getElementById("minijuego").innerHTML = "";
-      document.getElementById("money").textContent = `💵 Dinero: $${dinero}`;
-      mostrarBotonContinuar();
-    }
+function showMessage(text) {
+  const msg = document.createElement("div");
+  msg.textContent = text;
+  msg.style.position = "fixed";
+  msg.style.bottom = "20px";
+  msg.style.left = "50%";
+  msg.style.transform = "translateX(-50%)";
+  msg.style.background = "#2ecc71";
+  msg.style.color = "#fff";
+  msg.style.padding = "10px 20px";
+  msg.style.borderRadius = "10px";
+  msg.style.boxShadow = "0 0 10px #000";
+  msg.style.zIndex = "99";
+  document.body.appendChild(msg);
+  setTimeout(() => msg.remove(), 3000);
+}
 
-    function mostrar(id) {
-      document.getElementById("informacion").style.display = id === 'informacion' ? 'block' : 'none';
-      document.getElementById("jugar").style.display = id === 'jugar' ? 'block' : 'none';
-    }
-    mostrar('informacion');
+
+startButton.addEventListener("click", startGame);
+rollButton.addEventListener("click", rollDice);
+
+renderBoard();
+
+function mostrarPestana(id) {
+  const secciones = ['inicio', 'reglas', 'juego'];
+  secciones.forEach(seccion => {
+    document.getElementById('pestana-' + seccion).style.display = (seccion === id) ? 'block' : 'none';
+  });
+}
+
   </script>
 </body>
 </html>
